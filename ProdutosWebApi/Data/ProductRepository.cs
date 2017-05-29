@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using ProdutosWebApi.Models;
+using System.Data.Entity;
 
 namespace ProdutosWebApi.Data
 {
@@ -13,9 +14,9 @@ namespace ProdutosWebApi.Data
 
         public ProductRepository()
         {
-            Add(new Product { Name = "Tomato soup", Category = "Groceries", Price = 1.39M });
-            Add(new Product { Name = "Yo-yo", Category = "Toys", Price = 3.75M });
-            Add(new Product { Name = "Hammer", Category = "Hardware", Price = 16.99M });
+        //    Add(new Product { Name = "Tomato soup", Category = "Groceries", Price = 1.39M });
+        //    Add(new Product { Name = "Yo-yo", Category = "Toys", Price = 3.75M });
+        //    Add(new Product { Name = "Hammer", Category = "Hardware", Price = 16.99M });
         }
 
         public Product Add(Product item)
@@ -24,24 +25,32 @@ namespace ProdutosWebApi.Data
             {
                 throw new ArgumentNullException("item");
             }
-            item.Id = _nextId++;
-            products.Add(item);
+
+            var pc = new ProductContext();
+            pc.Products.Add(item);
+            pc.SaveChanges();
             return item;
         }
 
         public Product Get(int id)
         {
-            return products.Find(p => p.Id == id);
+            var pc = new ProductContext();
+            var product = pc.Products.Find(id);
+            return product;
         }
 
         public IEnumerable<Product> GetAll()
         {
-            return products;
+            var pc = new ProductContext();
+            var product = pc.Products.ToList();
+            return product;
         }
 
         public void Remove(int id)
         {
-            products.RemoveAll(p => p.Id == id);
+            var pc = new ProductContext();
+            var product = pc.Products.Find(id);
+            if (product != null) pc.Products.Remove(product);
         }
 
         public bool Update(Product item)
@@ -50,13 +59,8 @@ namespace ProdutosWebApi.Data
             {
                 throw new ArgumentNullException("item");
             }
-            int index = products.FindIndex(p => p.Id == item.Id);
-            if (index == -1)
-            {
-                return false;
-            }
-            products.RemoveAt(index);
-            products.Add(item);
+            var pc = new ProductContext();
+            pc.Entry(item).State = EntityState.Modified;
             return true;
         }
     }
